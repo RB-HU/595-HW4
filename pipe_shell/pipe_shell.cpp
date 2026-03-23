@@ -3,9 +3,10 @@
 #include <unistd.h>
 
 #include <array>
+#include <cerrno>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -92,7 +93,7 @@ static void ExecutePipeline(std::vector<std::vector<std::string>>& commands) {
       execvp(argv[0], argv.data());
 
       // execvp only returns on error
-      std::cerr << "Error: command not found: " << commands[i][0] << "\n";
+      std::cerr << strerror(errno) << "\n";
       exit(EXIT_FAILURE);
     }
 
