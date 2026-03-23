@@ -49,7 +49,7 @@ FSM& FSM::operator=(FSM&& other) noexcept {
 }
 
 bool FSM::AddState(StateID id) {
-  if (m_impl->states.count(id) > 0) {
+  if (m_impl->states.contains(id)) {
     return false;
   }
   m_impl->states[id] = State{};
@@ -57,11 +57,11 @@ bool FSM::AddState(StateID id) {
 }
 
 bool FSM::AddEdge(StateID from, char edge, StateID to) {
-  if ((m_impl->states.count(from) == 0) || (m_impl->states.count(to) == 0)) {
+  if ((!m_impl->states.contains(from)) || (!m_impl->states.contains(to))) {
     return false;
   }
   auto& transitions = m_impl->states[from].transitions;
-  if (transitions.count(edge) > 0) {
+  if (transitions.contains(edge)) {
     return false;
   }
   transitions[edge] = to;
@@ -69,7 +69,7 @@ bool FSM::AddEdge(StateID from, char edge, StateID to) {
 }
 
 bool FSM::MarkEndState(StateID id) {
-  if (m_impl->states.count(id) == 0) {
+  if (!m_impl->states.contains(id)) {
     return false;
   }
   m_impl->states[id].is_end = true;
