@@ -32,6 +32,7 @@ static std::vector<std::string> Split(const std::string& str, char delim) {
 // build null-terminated argv array for execvp, pointers into args
 static std::vector<char*> BuildArgv(std::vector<std::string>& args) {
   std::vector<char*> argv;
+  argv.reserve(args.size() + 1);
   for (std::string& s : args) {
     argv.push_back(s.data());
   }
@@ -56,7 +57,7 @@ static void ExecutePipeline(std::vector<std::vector<std::string>>& commands) {
   std::vector<pid_t> pids;
 
   for (size_t i = 0; i < num_cmds; i++) {
-    pid_t pid = fork();
+    const pid_t pid = fork();
     if (pid < 0) {
       std::cerr << "fork() failed\n";
       return;
@@ -130,7 +131,7 @@ int main() {
     }
 
     // Split line by '|' to get individual commands
-    std::vector<std::string> cmd_strings = Split(line, '|');
+    const std::vector<std::string> cmd_strings = Split(line, '|');
 
     if (cmd_strings.empty()) {
       continue;
@@ -139,8 +140,8 @@ int main() {
     // Split each command string into tokens (by space)
     std::vector<std::vector<std::string>> commands;
     bool valid = true;
-    for (std::string& cmd_str : cmd_strings) {
-      std::vector<std::string> tokens = Split(cmd_str, ' ');
+    for (const std::string& cmd_str : cmd_strings) {
+      const std::vector<std::string> tokens = Split(cmd_str, ' ');
       if (tokens.empty()) {
         std::cerr << "Error: empty command\n";
         valid = false;
