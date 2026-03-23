@@ -1,8 +1,8 @@
+#include <cctype>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <cctype>
 
 #include "BufferedFileReader.hpp"
 
@@ -51,7 +51,7 @@ BufferedFileReader& BufferedFileReader::operator=(
 }
 
 void BufferedFileReader::FillBuffer() {
-  ssize_t bytes = read(m_fd, m_buffer.data(), k_buf_size);
+  const ssize_t bytes = read(m_fd, m_buffer.data(), k_buf_size);
   if (bytes <= 0) {
     m_curr_length = 0;
   } else {
@@ -106,7 +106,7 @@ BufferedFileReader& BufferedFileReader::operator>>(std::string& str) {
   // Skip leading whitespace
   char c = GetChar();
   while (c != static_cast<char>(EOF) &&
-         std::isspace(static_cast<unsigned char>(c))) {
+         (std::isspace(static_cast<unsigned char>(c)) != 0)) {
     c = GetChar();
   }
   if (c == static_cast<char>(EOF)) {
@@ -115,7 +115,7 @@ BufferedFileReader& BufferedFileReader::operator>>(std::string& str) {
 
   // Read non-whitespace characters
   while (c != static_cast<char>(EOF) &&
-         !std::isspace(static_cast<unsigned char>(c))) {
+         !(std::isspace(static_cast<unsigned char>(c)) != 0)) {
     str += c;
     // Peek at next character without consuming if it's whitespace
     if (m_curr_index >= m_curr_length) {
@@ -125,7 +125,7 @@ BufferedFileReader& BufferedFileReader::operator>>(std::string& str) {
       }
     }
     c = m_buffer[m_curr_index];
-    if (std::isspace(static_cast<unsigned char>(c))) {
+    if ((std::isspace(static_cast<unsigned char>(c)) != 0)) {
       break;
     }
     m_curr_index++;
@@ -142,7 +142,7 @@ BufferedFileReader& BufferedFileReader::operator>>(int& value) {
   // Skip leading whitespace
   char c = GetChar();
   while (c != static_cast<char>(EOF) &&
-         std::isspace(static_cast<unsigned char>(c))) {
+         (std::isspace(static_cast<unsigned char>(c)) != 0)) {
     c = GetChar();
   }
   if (c == static_cast<char>(EOF)) {
@@ -150,14 +150,14 @@ BufferedFileReader& BufferedFileReader::operator>>(int& value) {
   }
 
   // Non-whitespace non-digit: treat as EOF
-  if (!std::isdigit(static_cast<unsigned char>(c))) {
+  if (!(std::isdigit(static_cast<unsigned char>(c)) != 0)) {
     m_good = false;
     return *this;
   }
 
   // Read digit characters
   while (c != static_cast<char>(EOF) &&
-         std::isdigit(static_cast<unsigned char>(c))) {
+         (std::isdigit(static_cast<unsigned char>(c)) != 0)) {
     value = value * 10 + (c - '0');
     // Peek at next character without consuming if it's not a digit
     if (m_curr_index >= m_curr_length) {
@@ -167,7 +167,7 @@ BufferedFileReader& BufferedFileReader::operator>>(int& value) {
       }
     }
     c = m_buffer[m_curr_index];
-    if (!std::isdigit(static_cast<unsigned char>(c))) {
+    if (!(std::isdigit(static_cast<unsigned char>(c)) != 0)) {
       break;
     }
     m_curr_index++;
@@ -197,7 +197,7 @@ int BufferedFileReader::Tell() const {
   if (m_fd < 0) {
     return -1;
   }
-  off_t file_pos = lseek(m_fd, 0, SEEK_CUR);
+  const off_t file_pos = lseek(m_fd, 0, SEEK_CUR);
   return static_cast<int>(file_pos -
                           static_cast<off_t>(m_curr_length - m_curr_index));
 }

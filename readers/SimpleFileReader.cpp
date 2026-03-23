@@ -35,7 +35,7 @@ char SimpleFileReader::GetChar() {
     return static_cast<char>(EOF);
   }
   char c = 0;
-  ssize_t bytes_read = read(m_fd, &c, 1);
+  const ssize_t bytes_read = read(m_fd, &c, 1);
   if (bytes_read <= 0) {
     m_good = false;
     return static_cast<char>(EOF);
@@ -51,7 +51,7 @@ std::optional<std::string> SimpleFileReader::GetChars(size_t n) {
   result.reserve(n);
   for (size_t i = 0; i < n; i++) {
     char c = 0;
-    ssize_t bytes_read = read(m_fd, &c, 1);
+    const ssize_t bytes_read = read(m_fd, &c, 1);
     if (bytes_read <= 0) {
       m_good = false;
       break;
