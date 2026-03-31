@@ -48,82 +48,87 @@ static bool RunCommand(vector<string>& tokens) {
   }
 
   if (pid == 0) {
-    // child: exec the command
     vector<char*> argv = BuildArgv(tokens);
     execvp(argv[0], argv.data());
-    // execvp only returns on error
     cerr << strerror(errno) << "\n";
     exit(EXIT_FAILURE);
   }
 
-  // parent: wait for child
   int status = 0;
   waitpid(pid, &status, 0);
   return (WIFEXITED(status) != 0) && (WEXITSTATUS(status) == EXIT_SUCCESS);
 }
 
-int main(int argc, char* argv[]) {
-  // parse optional retry count argument
-  int retry_count = 0;
-  if (argc == 2) {
-    try {
-      retry_count = std::stoi(argv[1]);
-      if (retry_count <= 0) {
-        cerr << "Error: retry count must be a positive integer\n";
-        return EXIT_FAILURE;
-      }
-    } catch (const std::invalid_argument&) {
-      cerr << "Error: invalid argument: " << argv[1] << "\n";
-      return EXIT_FAILURE;
-    } catch (const std::out_of_range&) {
-      cerr << "Error: argument out of range: " << argv[1] << "\n";
-      return EXIT_FAILURE;
+// retry a command up to retry_count times; prints messages on each retry
+static void RetryCommand(vector<string>& tokens, int retry_count) {
+  for (int attempt = 0; attempt < retry_count; attempt++) {
+    cerr << "retrying...\n";
+    if (RunCommand(tokens)) {
+      return;
     }
-  } else if (argc > 2) {
-    cerr << "Usage: " << argv[0] << " [retry_count]\n";
-    return EXIT_FAILURE;
   }
+  cerr << "Failed to run program after retrying\n";
+}
 
+// parse the retry count from argv[1]; returns -1 on error
+static int ParseRetryCount(const string& arg) {
+  try {
+    const int count = std::stoi(arg);
+    if (count <= 0) {
+      cerr << "Error: retry count must be a positive integer\n";
+      return -1;
+    }
+    return count;
+  } catch (const std::invalid_argument&) {
+    cerr << "Error: invalid argument: " << arg << "\n";
+    return -1;
+  } catch (const std::out_of_range&) {
+    cerr << "Error: argument out of range: " << arg << "\n";
+    return -1;
+  }
+}
+
+// run the main shell loop with the given retry count (0 = no retry)
+static void RunShell(int retry_count) {
   string line;
   while (true) {
     cout << "$ " << std::flush;
 
     if (!std::getline(cin, line)) {
-      // EOF
       break;
     }
 
-    // tokenize the input
     vector<string> tokens = Tokenize(line);
 
-    // skip empty input
     if (tokens.empty()) {
       continue;
     }
 
-    // exit command
     if (tokens[0] == "exit") {
       break;
     }
 
-    // run the command
     const bool success = RunCommand(tokens);
-
-    // retry logic
     if (!success && (retry_count > 0)) {
-      bool recovered = false;
-      for (int attempt = 0; attempt < retry_count; attempt++) {
-        cerr << "retrying...\n";
-        if (RunCommand(tokens)) {
-          recovered = true;
-          break;
-        }
-      }
-      if (!recovered) {
-        cerr << "Failed to run program after retrying\n";
-      }
+      RetryCommand(tokens, retry_count);
+    }
+  }
+}
+
+int main(int argc, char* argv[]) {
+  if (argc > 2) {
+    cerr << "Usage: " << argv[0] << " [retry_count]\n";
+    return EXIT_FAILURE;
+  }
+
+  int retry_count = 0;
+  if (argc == 2) {
+    retry_count = ParseRetryCount(argv[1]);
+    if (retry_count < 0) {
+      return EXIT_FAILURE;
     }
   }
 
+  RunShell(retry_count);
   return EXIT_SUCCESS;
 }
