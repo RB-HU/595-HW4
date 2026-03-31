@@ -42,6 +42,9 @@ static RGB BlurPixel(const vector<vector<RGB>>& original,
     }
   }
 
+  if (count == 0) {
+    return RGB{0, 0, 0};
+  }
   return RGB{static_cast<UCHAR>(sum_r / count),
              static_cast<UCHAR>(sum_g / count),
              static_cast<UCHAR>(sum_b / count)};
