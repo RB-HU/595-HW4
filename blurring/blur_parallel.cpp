@@ -130,8 +130,9 @@ int main(int argc, char* argv[]) {
   for (UINT i = 0; i < n; i++) {
     // distribute leftover rows to the first few threads
     const UINT rows = rows_per_thread + (i < leftover ? 1 : 0);
-    args[i] = ThreadArgs{&original, &output, width,      height,
-                         box_size,  current_row, current_row + rows};
+    args[i] =
+        ThreadArgs{&original,   &output,           width, height, box_size,
+                   current_row, current_row + rows};
     current_row += rows;
     pthread_create(&threads[i], nullptr, BlurRows, &args[i]);
   }

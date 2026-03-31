@@ -49,8 +49,7 @@ static RGB BlurPixel(const vector<vector<RGB>>& original,
 
 int main(int argc, char* argv[]) {
   if (argc != 4) {
-    cerr << "Usage: " << argv[0]
-         << " <input file> <output file> <box size>\n";
+    cerr << "Usage: " << argv[0] << " <input file> <output file> <box size>\n";
     return EXIT_FAILURE;
   }
 
