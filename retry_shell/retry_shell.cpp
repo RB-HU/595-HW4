@@ -62,12 +62,12 @@ static bool RunCommand(vector<string>& tokens) {
 // retry a command up to retry_count times; prints messages on each retry
 static void RetryCommand(vector<string>& tokens, int retry_count) {
   for (int attempt = 0; attempt < retry_count; attempt++) {
-    cerr << "retrying...\n";
+    cout << "retrying...\n";
     if (RunCommand(tokens)) {
       return;
     }
   }
-  cerr << "Failed to run program after retrying\n";
+  cout << "Failed to run program after retrying\n";
 }
 
 // parse the retry count from argv[1]; returns -1 on error
