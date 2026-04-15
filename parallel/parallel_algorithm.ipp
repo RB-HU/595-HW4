@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <thread>
 #include <vector>
 
@@ -20,7 +21,7 @@ std::vector<T> Transform(const std::vector<T>& input, F func) {
   }
 
   // the calling thread counts as one, so spawn num_threads - 1 extra threads
-  size_t extra_threads = num_threads - 1;
+  const size_t extra_threads = num_threads - 1;
 
   size_t chunk = input.size() / num_threads;
   size_t leftover = input.size() % num_threads;
@@ -61,14 +62,12 @@ T Reduce(const std::vector<T>& input, const T& init, F func) {
   // need at least 2 elements per thread for reduce to make sense
   // clamp threads so each thread gets at least 2 elements
   size_t max_useful = input.size() / 2;
-  if (num_threads > max_useful) {
-    num_threads = max_useful;
-  }
+  num_threads = std::min(num_threads, max_useful);
   if (num_threads == 0) {
     num_threads = 1;
   }
 
-  size_t extra_threads = num_threads - 1;
+  const size_t extra_threads = num_threads - 1;
   size_t chunk = input.size() / num_threads;
   size_t leftover = input.size() % num_threads;
 
